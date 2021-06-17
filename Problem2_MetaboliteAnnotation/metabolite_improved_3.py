@@ -6,10 +6,11 @@ import pandas as pd
 import time
 from tqdm import tqdm
 import itertools
+import numpy as np
 
 #input = "D:/GitHub/Bioinformatics_contest_2021/Problem2_MetaboliteAnnotation/sample.txt"
-input = "D:/GitHub/bioinfo_contest_2021/Problem2_MetaboliteAnnotation/5.txt"
-output = "D:/GitHub/bioinfo_contest_2021/Problem2_MetaboliteAnnotation/output4_bis.txt"
+input = "D:/GitHub/Bioinformatics_contest_2021/Problem2_MetaboliteAnnotation/4.txt"
+output = "D:/GitHub/Bioinformatics_contest_2021/Problem2_MetaboliteAnnotation/output4_bis.txt"
 
 t = time.time()
 
@@ -28,6 +29,7 @@ def minimum_delta(si, metabolites, adducts):
                         min_delta, tmp_j, tmp_k = abs(delta), j, k
                         if min_delta == 0:
                             break
+
     return(tmp_j, tmp_k)        
 
 def parallelize_search(metabolites, adducts, signals):
@@ -54,7 +56,20 @@ with open(input) as infile:
         adducts = [float(s) for s in infile.readline().strip().split()]
         signals = (float(s) for s in infile.readline().strip().split())
 
-        lazy_results.extend(parallelize_search(metabolites, adducts, signals))
+        
+        for signal in signals:
+            # to_search = round(signal/2, 6)
+            # if to_search in np.intersect1d(adducts, metabolites):
+            #     print(adducts.index(to_search) + 1, metabolites.index(to_search) + 1)
+            #     break
+            for j, mj in enumerate(metabolites, start=1):
+                   for k, ak in enumerate(adducts, start=1):
+                        if round(mj + ak, 6) > 0:
+                            if signal - round(mj + ak) == 0:
+                                print("yes")
+
+
+        #lazy_results.extend(parallelize_search(metabolites, adducts, signals))
     
         ## Using Dask on top of joblib doesn't improve the speed on my computer :( 
         ## TODO try Dask on slurm in cluster mode
@@ -65,7 +80,7 @@ with open(input) as infile:
     #results = dask.compute(*lazy_results, scheduler = "threading")
     
     #print(lazy_results)
-    df = pd.DataFrame(lazy_results)
-    df.to_csv(output, header=None, index=None, sep=' ')
+    #df = pd.DataFrame(lazy_results)
+    #df.to_csv(output, header=None, index=None, sep=' ')
 
 print(time.time() - t)
